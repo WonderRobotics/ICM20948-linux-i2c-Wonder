@@ -285,6 +285,8 @@ const IMUData& ICM20948::imuDataGet()
 
 	mData.mTemp = (static_cast<float>(temperature - 21) / 333.87f) + 21.0f;
 
+	mRawData = mData; // no need for explicit deep copy, as IMUData has only arrays.
+
 	switch (mConfig.mAHRS)
 	{
 		case NONE:
@@ -307,6 +309,11 @@ const IMUData& ICM20948::imuDataGet()
 	}
 
 	return mData;
+}
+
+const IMUData& ICM20948::GetRawData()
+{
+	return mRawData;
 }
 
 void ICM20948::calibrateGyro() const

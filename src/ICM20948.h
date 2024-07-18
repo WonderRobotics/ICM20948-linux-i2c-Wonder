@@ -215,6 +215,12 @@ public:
 	const IMUData& imuDataGet();
 
 	/**
+	 * Get the raw data before precessing .
+	 * @return a reference to the latest raw IMU data (not thread-safe).
+	 */
+	const IMUData& GetRawData();
+
+	/**
 	 * Calibrates the gyroscope by averaging 1024 samples of gyro and uploading them as a bias to the device.
 	 * @note make sure to be stationary!
 	 */
@@ -334,6 +340,8 @@ private:
 	uint8_t mRawDataBuf[22];
 	/** Class for controlling I2C communication. */
 	I2C mI2C;
+	/** IMU before fusion. */
+	IMUData mRawData;
 };
 
 #endif /* ICM20948_H_ */
