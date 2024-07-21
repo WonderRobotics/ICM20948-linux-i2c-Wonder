@@ -181,7 +181,9 @@ public:
 		/** The frame rate in which data will be processed for AHRS. */
 		float mFramerate;
 
-		Config() : mDevice("/dev/i2c-1"), mGyro(), mAcc(), mTemp(), mMagEnabled(true), mAHRS(MADGWICK), mFramerate(100.0f) {};
+		uint8_t i2cAddr;
+
+		Config() : mDevice("/dev/i2c-0"), mGyro(), mAcc(), mTemp(), mMagEnabled(true), mAHRS(MADGWICK), mFramerate(100.0f), i2cAddr(0x69) {};
 	};
 
 	/**
@@ -342,6 +344,8 @@ private:
 	I2C mI2C;
 	/** IMU before fusion. */
 	IMUData mRawData;
+
+	uint8_t i2cAddr;
 };
 
 #endif /* ICM20948_H_ */

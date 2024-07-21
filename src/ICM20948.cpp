@@ -37,7 +37,7 @@
 #include "SimpleAHRS.h"
 
 /* define ICM-20948 Device I2C address*/
-#define I2C_ADD_ICM20948            0x69
+// #define I2C_ADD_ICM20948            0x69
 #define I2C_ADD_ICM20948_AK09916    0x0C
 #define I2C_ADD_ICM20948_AK09916_READ  0x80
 #define I2C_ADD_ICM20948_AK09916_WRITE 0x00
@@ -217,7 +217,7 @@ bool ICM20948::initialise(const Config& config)
 	if (mI2C.openSerialPort(mConfig.mDevice))
 	{
 		setBank(BANK_0);
-		deviceID = mI2C.readByte(I2C_ADD_ICM20948, REG_ADD_WIA);
+		deviceID = mI2C.readByte(i2cAddr, REG_ADD_WIA);
 		if (REG_VAL_WIA == deviceID)
 		{
 			/* Reset all IMU configuration. */
@@ -225,7 +225,7 @@ bool ICM20948::initialise(const Config& config)
 
 			setBank(BANK_3);
 			/* Reset I2C master clock. */
-			mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_MST_CTRL, 0);
+			mI2C.writeByte(i2cAddr, REG_ADD_I2C_MST_CTRL, 0);
 
 			configureMasterI2C();
 
@@ -328,12 +328,12 @@ void ICM20948::calibrateGyro() const
 
 	// Reset the offset so that we perform the fresh calibration
 	setBank(BANK_2);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_XG_OFFS_USRH, 0);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_XG_OFFS_USRL, 0);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_YG_OFFS_USRH, 0);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_YG_OFFS_USRL, 0);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ZG_OFFS_USRH, 0);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ZG_OFFS_USRL, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_XG_OFFS_USRH, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_XG_OFFS_USRL, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_YG_OFFS_USRH, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_YG_OFFS_USRL, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_ZG_OFFS_USRH, 0);
+	mI2C.writeByte(i2cAddr, REG_ADD_ZG_OFFS_USRL, 0);
 
 	// Read several gyro measurements and average them.
 	for (i = 0; i < 1024; ++i)
@@ -351,19 +351,19 @@ void ICM20948::calibrateGyro() const
 
 	// Push gyroscope biases to hardware registers
 	setBank(BANK_2);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_XG_OFFS_USRH, static_cast<uint8_t>((s16G[0] >> 8) & 0xFF));
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_XG_OFFS_USRL, static_cast<uint8_t>( s16G[0]       & 0xFF));
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_YG_OFFS_USRH, static_cast<uint8_t>((s16G[1] >> 8) & 0xFF));
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_YG_OFFS_USRL, static_cast<uint8_t>( s16G[1]       & 0xFF));
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ZG_OFFS_USRH, static_cast<uint8_t>((s16G[2] >> 8) & 0xFF));
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ZG_OFFS_USRL, static_cast<uint8_t>( s16G[2]       & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_XG_OFFS_USRH, static_cast<uint8_t>((s16G[0] >> 8) & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_XG_OFFS_USRL, static_cast<uint8_t>( s16G[0]       & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_YG_OFFS_USRH, static_cast<uint8_t>((s16G[1] >> 8) & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_YG_OFFS_USRL, static_cast<uint8_t>( s16G[1]       & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_ZG_OFFS_USRH, static_cast<uint8_t>((s16G[2] >> 8) & 0xFF));
+	mI2C.writeByte(i2cAddr, REG_ADD_ZG_OFFS_USRL, static_cast<uint8_t>( s16G[2]       & 0xFF));
 }
 
 void ICM20948::setBank(const ICM_BANK bank) const
 {
 	if (bank != mCurrentBank && bank != BANK_UNDEFINED)
 	{
-		mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_REG_BANK_SEL, bank);
+		mI2C.writeByte(i2cAddr, REG_ADD_REG_BANK_SEL, bank);
 		mCurrentBank = bank;
 	}
 }
@@ -377,11 +377,11 @@ void ICM20948::reset() const
 
 	setBank(BANK_0);
 	/* Reset all settings on master device  */
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_PWR_MGMT_1, REG_VAL_ALL_RGE_RESET);
+	mI2C.writeByte(i2cAddr, REG_ADD_PWR_MGMT_1, REG_VAL_ALL_RGE_RESET);
 
 	sleepMS(10);
 	/* Enable optimal on-board timer and configure temperature sensor */
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_PWR_MGMT_1, REG_VAL_RUN_MODE | (static_cast<uint8_t>(!mConfig.mTemp.mEnabled) << 3));
+	mI2C.writeByte(i2cAddr, REG_ADD_PWR_MGMT_1, REG_VAL_RUN_MODE | (static_cast<uint8_t>(!mConfig.mTemp.mEnabled) << 3));
 
 	/* Enable both sensors */
 	if (!mConfig.mGyro.mEnabled)
@@ -392,7 +392,7 @@ void ICM20948::reset() const
 	{
 		sensorsFlag |= REG_VAL_DISABLE_ACC;
 	}
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_PWR_MGMT_2, sensorsFlag);
+	mI2C.writeByte(i2cAddr, REG_ADD_PWR_MGMT_2, sensorsFlag);
 	sleepMS(10);
 
 	/* Reset all settings on magnetometer.
@@ -442,12 +442,12 @@ void ICM20948::configureGyro()
 	}
 
 	setBank(BANK_2);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_GYRO_SMPLRT_DIV, sampleRateDivisor & 0xFF);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_GYRO_CONFIG_1, mConfig.mGyro.mDLPFBandwidth | (mConfig.mGyro.mRange << 1));
+	mI2C.writeByte(i2cAddr, REG_ADD_GYRO_SMPLRT_DIV, sampleRateDivisor & 0xFF);
+	mI2C.writeByte(i2cAddr, REG_ADD_GYRO_CONFIG_1, mConfig.mGyro.mDLPFBandwidth | (mConfig.mGyro.mRange << 1));
 
 	if (mConfig.mGyro.mAveraging > GYRO_AVERAGING_NONE)
 	{
-		mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_GYRO_CONFIG_2, mConfig.mGyro.mAveraging);
+		mI2C.writeByte(i2cAddr, REG_ADD_GYRO_CONFIG_2, mConfig.mGyro.mAveraging);
 	}
 }
 
@@ -486,13 +486,13 @@ void ICM20948::configureAcc()
 	}
 
 	setBank(BANK_2);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ACCEL_SMPLRT_DIV_1, static_cast<uint8_t>(sampleRateDivisor >> 8) & 0x0F);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ACCEL_SMPLRT_DIV_2, static_cast<uint8_t>(sampleRateDivisor     ) & 0xFF);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ACCEL_CONFIG, bandwidth | (mConfig.mAcc.mRange << 1));
+	mI2C.writeByte(i2cAddr, REG_ADD_ACCEL_SMPLRT_DIV_1, static_cast<uint8_t>(sampleRateDivisor >> 8) & 0x0F);
+	mI2C.writeByte(i2cAddr, REG_ADD_ACCEL_SMPLRT_DIV_2, static_cast<uint8_t>(sampleRateDivisor     ) & 0xFF);
+	mI2C.writeByte(i2cAddr, REG_ADD_ACCEL_CONFIG, bandwidth | (mConfig.mAcc.mRange << 1));
 
 	if (ACC_AVERAGING_NONE < mConfig.mAcc.mAveraging)
 	{
-		mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_ACCEL_CONFIG_2, mConfig.mAcc.mAveraging);
+		mI2C.writeByte(i2cAddr, REG_ADD_ACCEL_CONFIG_2, mConfig.mAcc.mAveraging);
 	}
 }
 
@@ -532,7 +532,7 @@ void ICM20948::configureTemp() const
 {
 	setBank(BANK_2);
 	/* configure temperature sensor */
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_TEMP_CONFIG, mConfig.mTemp.mDLPFBandwidth);
+	mI2C.writeByte(i2cAddr, REG_ADD_TEMP_CONFIG, mConfig.mTemp.mDLPFBandwidth);
 }
 
 void ICM20948::configureMasterI2C() const
@@ -540,12 +540,12 @@ void ICM20948::configureMasterI2C() const
 	uint8_t temp;
 	setBank(BANK_0);
 	/* Read the current user control and update it with new configuration to enable I2C master */
-	temp = mI2C.readByte(I2C_ADD_ICM20948, REG_ADD_USER_CTRL);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_USER_CTRL, temp | REG_VAL_BIT_I2C_MST_EN);
+	temp = mI2C.readByte(i2cAddr, REG_ADD_USER_CTRL);
+	mI2C.writeByte(i2cAddr, REG_ADD_USER_CTRL, temp | REG_VAL_BIT_I2C_MST_EN);
 
 	/* Set I2C master clock to recommended value. */
 	setBank(BANK_3);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_MST_CTRL, REG_VAL_I2C_MST_CTRL_CLK_400KHZ);
+	mI2C.writeByte(i2cAddr, REG_ADD_I2C_MST_CTRL, REG_VAL_I2C_MST_CTRL_CLK_400KHZ);
 
 	sleepMS(10);
 }
@@ -554,7 +554,7 @@ void ICM20948::readRawGyro(int16_t gyro[3]) const
 {
     uint8_t u8Buf[GYRO_AND_ACC_DATA_LEN];
 	setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_GYRO_XOUT_H, GYRO_AND_ACC_DATA_LEN, u8Buf);
+    mI2C.readNBytes(i2cAddr, REG_ADD_GYRO_XOUT_H, GYRO_AND_ACC_DATA_LEN, u8Buf);
     gyro[0] = (static_cast<int16_t>(u8Buf[0]) << 8) | static_cast<int16_t>(u8Buf[1]);
     gyro[1] = (static_cast<int16_t>(u8Buf[2]) << 8) | static_cast<int16_t>(u8Buf[3]);
     gyro[2] = (static_cast<int16_t>(u8Buf[4]) << 8) | static_cast<int16_t>(u8Buf[5]);
@@ -564,7 +564,7 @@ void ICM20948::readRawAcc(int16_t acc[3]) const
 {
     uint8_t u8Buf[GYRO_AND_ACC_DATA_LEN];
 	setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_ACCEL_XOUT_H, GYRO_AND_ACC_DATA_LEN, u8Buf);
+    mI2C.readNBytes(i2cAddr, REG_ADD_ACCEL_XOUT_H, GYRO_AND_ACC_DATA_LEN, u8Buf);
     acc[0] = (static_cast<int16_t>(u8Buf[0]) << 8) | static_cast<int16_t>(u8Buf[1]);
     acc[1] = (static_cast<int16_t>(u8Buf[2]) << 8) | static_cast<int16_t>(u8Buf[3]);
     acc[2] = (static_cast<int16_t>(u8Buf[4]) << 8) | static_cast<int16_t>(u8Buf[5]);
@@ -574,7 +574,7 @@ bool ICM20948::readRawMag(int16_t mag[3]) const
 {
     uint8_t u8Buf[MAG_DATA_LEN];
 	setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_EXT_SENS_DATA_00, MAG_DATA_LEN, u8Buf);
+    mI2C.readNBytes(i2cAddr, REG_ADD_EXT_SENS_DATA_00, MAG_DATA_LEN, u8Buf);
     mag[0] =  (static_cast<int16_t>(u8Buf[1]) << 8) | static_cast<int16_t>(u8Buf[0]);
     mag[1] =-((static_cast<int16_t>(u8Buf[3]) << 8) | static_cast<int16_t>(u8Buf[2]));
     mag[2] =-((static_cast<int16_t>(u8Buf[5]) << 8) | static_cast<int16_t>(u8Buf[4]));
@@ -586,14 +586,14 @@ int16_t ICM20948::readRawTemp() const
 {
     uint8_t u8Buf[2];
 	setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_TEMP_OUT_H, 2, u8Buf);
+    mI2C.readNBytes(i2cAddr, REG_ADD_TEMP_OUT_H, 2, u8Buf);
     return (static_cast<int16_t>(u8Buf[0]) << 8) | static_cast<int16_t>(u8Buf[1]);
 }
 
 bool ICM20948::readAllRawDAta(int16_t gyro[3], int16_t acc[3], int16_t mag[3], int16_t& temp)
 {
 	setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_ACCEL_XOUT_H, IMU_DATA_LEN, mRawDataBuf);
+    mI2C.readNBytes(i2cAddr, REG_ADD_ACCEL_XOUT_H, IMU_DATA_LEN, mRawDataBuf);
 
     /* Parse accelerometer data */
     acc[0]  =  (static_cast<int16_t>(mRawDataBuf[ 0]) << 8) | static_cast<int16_t>(mRawDataBuf[ 1]);
@@ -633,22 +633,22 @@ bool ICM20948::checkMag() const
 void ICM20948::magI2CRead(const uint8_t regAddr, const uint8_t length, uint8_t* data) const
 {
     setBank(BANK_3);
-    mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_ADDR, I2C_ADD_ICM20948_AK09916 | I2C_ADD_ICM20948_AK09916_READ);
-    mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_REG,  regAddr);
-    mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_CTRL, REG_VAL_BIT_SLV0_EN | length);
+    mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_ADDR, I2C_ADD_ICM20948_AK09916 | I2C_ADD_ICM20948_AK09916_READ);
+    mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_REG,  regAddr);
+    mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_CTRL, REG_VAL_BIT_SLV0_EN | length);
 
     setBank(BANK_0);
-    mI2C.readNBytes(I2C_ADD_ICM20948, REG_ADD_EXT_SENS_DATA_00, length, data);
+    mI2C.readNBytes(i2cAddr, REG_ADD_EXT_SENS_DATA_00, length, data);
 }
 
 void ICM20948::magI2CWrite(const uint8_t regAddr, const uint8_t value) const
 {
 	uint8_t u8Temp;
 	setBank(BANK_3);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_ADDR, I2C_ADD_ICM20948_AK09916 | I2C_ADD_ICM20948_AK09916_WRITE);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_REG,  regAddr);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_DO,   value);
-	mI2C.writeByte(I2C_ADD_ICM20948, REG_ADD_I2C_SLV0_CTRL, REG_VAL_BIT_SLV0_EN | 1);
+	mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_ADDR, I2C_ADD_ICM20948_AK09916 | I2C_ADD_ICM20948_AK09916_WRITE);
+	mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_REG,  regAddr);
+	mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_DO,   value);
+	mI2C.writeByte(i2cAddr, REG_ADD_I2C_SLV0_CTRL, REG_VAL_BIT_SLV0_EN | 1);
 
 	sleepMS(100);
 	magI2CRead(regAddr, 1, &u8Temp);
