@@ -93,7 +93,16 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if (imu.initialise())
+
+	ICM20948::Config config;
+	config.mAHRS = ICM20948::AHRS_ALGORITHM::MADGWICK;
+	config.mFramerate = 400.0f; // looks like 500 is the maximal value, even with AHRS algo. bottleneck is the reading from IMU.
+	config.mMagEnabled = true;
+	const char* newDevice = "/dev/i2c-1";
+	strncpy(config.mDevice, newDevice, sizeof(config.mDevice) - 1);
+	config.mDevice[sizeof(config.mDevice) - 1] = '\0'; // Ensure null termination
+
+	if (imu.initialise(0x69, config))
 	{
 		puts("ICM-20948 detected successfully");
 		if (calib)
@@ -111,6 +120,13 @@ int main(int argc, char** argv)
 			printf("\n Gyroscope(dps): X: %.3f     Y: %.3f     Z: %.3f \n", data->mGyro[0] * RAD_TO_DEG, data->mGyro[1] * RAD_TO_DEG, data->mGyro[2] * RAD_TO_DEG);
 			printf("\n Magnetic(uT): X: %.3f     Y: %.3f     Z: %.3f \n", data->mMag[0], data->mMag[1], data->mMag[2]);
 			printf("\n Temperature(C): %.3f\n", data->mTemp);
+
+			printf("\n RAW Acceleration(g): X: %.3f     Y: %.3f     Z: %.3f \n", data->mAccRaw[0], data->mAccRaw[1], data->mAccRaw[2]);
+			printf("\n RAW Gyroscope(dps): X: %.3f     Y: %.3f     Z: %.3f \n", data->mGyroRaw[0] * RAD_TO_DEG, data->mGyroRaw[1] * RAD_TO_DEG, data->mGyroRaw[2] * RAD_TO_DEG);
+			printf("\n RAW Magnetic(uT): X: %.3f     Y: %.3f     Z: %.3f \n", data->mMagRaw[0], data->mMagRaw[1], data->mMagRaw[2]);
+
+
+
 			/* Calculate sleep time by taking expected period between IMU updates and reducing it by a time needed to process data. */
 			sleepTime = static_cast<int>(((1.0f / imu.getConfig().mFramerate) - (getTime() - currentTime)) * 1000000.0);
 			/* We use signed type in case processing takes more than expected period between updates. */

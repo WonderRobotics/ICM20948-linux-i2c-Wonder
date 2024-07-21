@@ -181,9 +181,7 @@ public:
 		/** The frame rate in which data will be processed for AHRS. */
 		float mFramerate;
 
-		uint8_t i2cAddr;
-
-		Config() : mDevice("/dev/i2c-0"), mGyro(), mAcc(), mTemp(), mMagEnabled(true), mAHRS(MADGWICK), mFramerate(100.0f), i2cAddr(0x69) {};
+		Config() : mDevice("/dev/i2c-0"), mGyro(), mAcc(), mTemp(), mMagEnabled(true), mAHRS(MADGWICK), mFramerate(100.0f) {};
 	};
 
 	/**
@@ -200,7 +198,7 @@ public:
 	 * Initialises the IMU with provided configuration data.
 	 *  @param config the IMU configuration.
 	 */
-	bool initialise(const Config& config = Config());
+	bool initialise(uint8_t i2cAddress, const Config& config = Config());
 
 	/**
 	 *  @return the current configuration.
@@ -215,12 +213,6 @@ public:
 	 *  @return a reference to the latest IMU data (not thread-safe).
 	 */
 	const IMUData& imuDataGet();
-
-	/**
-	 * Get the raw data before precessing .
-	 * @return a reference to the latest raw IMU data (not thread-safe).
-	 */
-	const IMUData& GetRawData();
 
 	/**
 	 * Calibrates the gyroscope by averaging 1024 samples of gyro and uploading them as a bias to the device.
@@ -342,8 +334,6 @@ private:
 	uint8_t mRawDataBuf[22];
 	/** Class for controlling I2C communication. */
 	I2C mI2C;
-	/** IMU before fusion. */
-	IMUData mRawData;
 
 	uint8_t i2cAddr;
 };

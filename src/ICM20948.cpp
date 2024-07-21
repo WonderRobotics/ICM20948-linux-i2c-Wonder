@@ -202,8 +202,9 @@ ICM20948::~ICM20948()
 {
 }
 
-bool ICM20948::initialise(const Config& config)
+bool ICM20948::initialise(uint8_t i2cAddress, const Config& config)
 {
+	i2cAddr = i2cAddress;
 	uint8_t deviceID = 0;
 
 	if (strcmp(config.mDevice, mConfig.mDevice) != 0)
@@ -285,7 +286,16 @@ const IMUData& ICM20948::imuDataGet()
 
 	mData.mTemp = (static_cast<float>(temperature - 21) / 333.87f) + 21.0f;
 
-	mRawData = mData; // no need for explicit deep copy, as IMUData has only arrays.
+	// Store raw data (Acc and Mag are modified during AHRS algo)
+	mData.mGyroRaw[0] = mData.mGyro[0];
+	mData.mGyroRaw[1] = mData.mGyro[1];
+	mData.mGyroRaw[2] = mData.mGyro[2];
+	mData.mAccRaw[0] = mData.mAcc[0];
+	mData.mAccRaw[1] = mData.mAcc[1];
+	mData.mAccRaw[2] = mData.mAcc[2];
+	mData.mMagRaw[0] = mData.mMag[0];
+	mData.mMagRaw[1] = mData.mMag[1];
+	mData.mMagRaw[2] = mData.mMag[2];
 
 	switch (mConfig.mAHRS)
 	{
@@ -309,11 +319,6 @@ const IMUData& ICM20948::imuDataGet()
 	}
 
 	return mData;
-}
-
-const IMUData& ICM20948::GetRawData()
-{
-	return mRawData;
 }
 
 void ICM20948::calibrateGyro() const
