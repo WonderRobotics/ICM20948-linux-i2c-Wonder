@@ -198,7 +198,7 @@ public:
 	 * Initialises the IMU with provided configuration data.
 	 *  @param config the IMU configuration.
 	 */
-	bool initialise(const Config& config = Config());
+	bool initialise(uint8_t i2cAddress, const Config& config = Config());
 
 	/**
 	 *  @return the current configuration.
@@ -334,6 +334,8 @@ private:
 	uint8_t mRawDataBuf[22];
 	/** Class for controlling I2C communication. */
 	I2C mI2C;
+
+	uint8_t i2cAddr;
 };
 
 #endif /* ICM20948_H_ */

@@ -43,6 +43,10 @@ struct IMUData
 	/** Euler angles representation of IMU orientation in degrees. */
 	float mAngles[3];
 
+	float mGyroRaw[3];
+	float mAccRaw[3];
+	float mMagRaw[3];
+
 	/**
 	 * Basic constructor which initialises all variables with default values.
 	 */
