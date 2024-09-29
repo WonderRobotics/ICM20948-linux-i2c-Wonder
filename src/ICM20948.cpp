@@ -297,6 +297,15 @@ const IMUData& ICM20948::imuDataGet()
 	mData.mMagRaw[1] = mData.mMag[1];
 	mData.mMagRaw[2] = mData.mMag[2];
 
+	// Apply magnetometer calibration: first de-bias:
+	mData.mMag[0] = mData.mMagRaw[0] - mMagBias[0];
+	mData.mMag[1] = mData.mMagRaw[1] - mMagBias[1];
+	mData.mMag[2] = mData.mMagRaw[2] - mMagBias[2];
+	// then multiply by matrix:
+	mData.mMag[0] = mMagMat[0] * mData.mMag[0] + mMagMat[1] * mData.mMag[1] + mMagMat[2] * mData.mMag[2];
+	mData.mMag[1] = mMagMat[3] * mData.mMag[0] + mMagMat[4] * mData.mMag[1] + mMagMat[5] * mData.mMag[2];
+	mData.mMag[2] = mMagMat[6] * mData.mMag[0] + mMagMat[7] * mData.mMag[1] + mMagMat[8] * mData.mMag[2];
+
 	switch (mConfig.mAHRS)
 	{
 		case NONE:
@@ -319,6 +328,17 @@ const IMUData& ICM20948::imuDataGet()
 	}
 
 	return mData;
+}
+
+void ICM20948::SetMagCalibration(float *bias, float *matrix)
+{
+	mMagBias[0] = bias[0];
+	mMagBias[1] = bias[1]; 
+	mMagBias[2] = bias[2];
+	for (int i = 0; i < 9; i++)
+	{
+		mMagMat[i] = matrix[i];
+	}
 }
 
 void ICM20948::calibrateGyro() const

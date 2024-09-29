@@ -219,6 +219,7 @@ public:
 	 * @note make sure to be stationary!
 	 */
 	void calibrateGyro() const;
+	void SetMagCalibration(float *bias, float *matrix);
 
 private:
 	enum ICM_BANK
@@ -336,6 +337,9 @@ private:
 	I2C mI2C;
 
 	uint8_t i2cAddr;
+
+	float mMagBias[3] = {0};
+	float mMagMat[9] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // eye[3,3]
 };
 
 #endif /* ICM20948_H_ */
